@@ -19,3 +19,4 @@
 
 #create_symlinks
 cat .zshrc > $HOME/.zshrc
+cat .aliases > $HOME/.aliases
