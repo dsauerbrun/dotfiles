@@ -18,5 +18,6 @@
 #}
 
 #create_symlinks
+sudo chsh "$(id -un)" --shell "/usr/bin/zsh"
 cat .zshrc > $HOME/.zshrc
 cat .aliases > $HOME/.aliases
