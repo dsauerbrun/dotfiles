@@ -20,7 +20,7 @@ alias stash-unstaged="git stash push --keep-index -u"
 
 # work-specific
 alias dev="make dev-start-web"
-alias mdw="made dev-start web web-client"
+alias mdw="make dev-start web web-client"
 alias integration="make dev-start-integration"
 alias types="turbo generate-types"
 alias typecheck="turbo typecheck"
