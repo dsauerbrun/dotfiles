@@ -6,3 +6,5 @@ ZSH_THEME="apple"
 # aliases
 source $ZSH/oh-my-zsh.sh
 source $HOME/.aliases
+
+TERM=xterm-256color
