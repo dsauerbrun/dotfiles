@@ -1,7 +1,7 @@
 #! /bin/bash
 set -x
 
-touch $HOME/testingthis.txt
+touch $HOME/testingthis2.txt
 # All of these segments will be symlinked from the home directory to your EFS drive.
 # You can safely customize this list.
 for segment in .claude .claude.json .codex .oh-my-zsh .zshenv .zprofile .zsh_history .zshrc .cursor .cursor-server; do
