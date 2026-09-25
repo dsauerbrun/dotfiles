@@ -1,4 +1,3 @@
-# not really needed since I'm not installing additional scripts
 #!/bin/bash
 
 #create_symlinks() {
@@ -27,3 +26,10 @@ curl -fsSL https://opencode.ai/v2/install | bash
 
 #install herder
 curl -fsSL https://herdr.dev/install.sh | sh
+
+# make freshly installed binaries visible to this script
+export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$HOME/bin:$PATH"
+
+cd "$HOME" && herdr integration install opencode
+
+npx --yes skills add herdrdev/herdr --skill herdr -g -a opencode -y
