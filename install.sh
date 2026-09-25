@@ -30,6 +30,7 @@ curl -fsSL https://herdr.dev/install.sh | sh
 # make freshly installed binaries visible to this script
 export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$HOME/bin:$PATH"
 
+mkdir -p "$HOME/.config/opencode"
 cd "$HOME" && herdr integration install opencode
 
 npx --yes skills add herdrdev/herdr --skill herdr -g -a opencode -y
