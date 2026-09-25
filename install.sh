@@ -21,3 +21,9 @@
 sudo chsh "$(id -un)" --shell "/usr/bin/zsh"
 cat .zshrc > $HOME/.zshrc
 cat .aliases > $HOME/.aliases
+
+#install opencode
+curl -fsSL https://opencode.ai/v2/install | bash
+
+#install herder
+curl -fsSL https://herdr.dev/install.sh | sh
