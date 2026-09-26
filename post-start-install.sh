@@ -11,3 +11,10 @@ for segment in AGENTS.md .claude .claude.json .codex .cursor .cursor-server; do
   # Don't fail if the symlink already exists.
   ln -s "$EFS_MOUNT_POINT/$segment" "$HOME" || true
 done
+
+# OpenCode reads global instructions from ~/.config/opencode/AGENTS.md, so point it
+# at the AGENTS.md above and keep a single real file. Deliberately outside the loop:
+# syncing .config/opencode wholesale would export per-machine state, including the
+# 0600 service credential in service.json, to every host on the NFS share.
+mkdir -p "$HOME/.config/opencode"
+ln -sfn ../../AGENTS.md "$HOME/.config/opencode/AGENTS.md"
