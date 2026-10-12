@@ -22,7 +22,10 @@ cat .zshrc > $HOME/.zshrc
 cat .aliases > $HOME/.aliases
 
 #install opencode
-curl -fsSL https://opencode.ai/v2/install | bash
+curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path
+if [ ! -x "$HOME/.opencode/bin/opencode" ]; then
+    echo "ERROR: opencode install failed; $HOME/.opencode/bin/opencode is missing" >&2
+fi
 
 #install herder
 curl -fsSL https://herdr.dev/install.sh | sh

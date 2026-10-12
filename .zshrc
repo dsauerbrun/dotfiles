@@ -1,3 +1,5 @@
+export PATH="$HOME/.opencode/bin:$PATH"
+
 export ZSH="${HOME}/.oh-my-zsh"
 
 # theme
