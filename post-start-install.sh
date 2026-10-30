@@ -21,7 +21,7 @@ for segment in AGENTS.md .claude .claude.json .config/gh .codex .cursor .cursor-
   esac
   mkdir -p "$(dirname "$HOME/$segment")"
   # Don't fail if the symlink already exists.
-  ln -s "$EFS_MOUNT_POINT/$segment" "$HOME" || true
+  ln -s "$EFS_MOUNT_POINT/$segment" "$HOME/$segment" || true
 done
 
 # OpenCode reads global instructions from ~/.config/opencode/AGENTS.md, so point it
