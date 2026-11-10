@@ -29,3 +29,6 @@ alias make-types="make generate-types"
 alias story="make dev-storybook"
 alias test="make unit-test"
 
+# rex
+alias rex-status="rex server status"
+alias rex-retry-cert="rex server tailscale off && rex server tailscale on"

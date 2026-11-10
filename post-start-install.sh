@@ -34,3 +34,5 @@ ln -sfn ../../AGENTS.md "$HOME/.config/opencode/AGENTS.md"
 # Keep .mcp.json as the source of truth for project-local OpenCode MCP servers.
 workspace="${VANTA_WORKSPACE_DIR:-/workspaces/obsidian}"
 python3 "$(dirname "$(readlink -f "$0")")/generate-opencode-mcp.py" "$workspace"
+
+"$(dirname "$(readlink -f "$0")")/rex-setup.sh"
