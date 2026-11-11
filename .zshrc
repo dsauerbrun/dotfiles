@@ -32,13 +32,15 @@ rex() {
 # --autostart=false keeps a status check from launching a server without --tailscale.
 if [[ -n "$SSH_CONNECTION" ]] && (( $+commands[rex] )); then
   if rex_status=$(command rex server status --autostart=false --timeout 2s 2>/dev/null); then
-    rex_url=$(print -r -- "$rex_status" | sed -n 's/^  https: //p')
+    # The https line reads "pending" until the certificate is issued, so only
+    # an actual URL counts.
+    rex_url=$(print -r -- "$rex_status" | sed -n 's|^  https: \(https://.*\)|\1|p')
     rex_login_url=$(print -r -- "$rex_status" | sed -n 's/^  authenticate: //p')
-    if [[ -n "$rex_url" ]]; then
+    if [[ -n "$rex_login_url" ]]; then
+      echo "rex: Tailscale sign-in needed: $rex_login_url"
+    elif [[ -n "$rex_url" ]]; then
       echo "rex tailnet url:"
       echo "$rex_url"
-    elif [[ -n "$rex_login_url" ]]; then
-      echo "rex: Tailscale sign-in needed: $rex_login_url"
     else
       echo "rex: server running, tailnet https not ready yet (check rex-status)"
     fi
