@@ -8,7 +8,26 @@
 # by hand (see the rex function in .zshrc). Every path gets the same flags.
 set -euo pipefail
 
-hostname="${REX_TAILSCALE_HOSTNAME:-dsauerbrun-rex}"
+# Node names are shared across every engineer's workspaces on the tailnet, so
+# build <first initial><last name>-<ona environment name>-rex, e.g.
+# dsauerbrun-rex3-rex. The owner comes from first.last@ in the Ona owner email,
+# falling back to the git author name.
+default_hostname() {
+  local owner env_name
+  owner="${ONA_INSTANCE_OWNER_EMAIL%%@*}"
+  if [ -z "$owner" ]; then
+    owner="$(git config user.name 2>/dev/null | tr ' ' '.')"
+  fi
+  case "$owner" in
+    *.*) owner="${owner:0:1}${owner##*.}" ;;
+  esac
+  env_name="$(ona environment get --field name 2>/dev/null || true)"
+  # DNS labels allow only lowercase letters, digits and hyphens, up to 63 chars.
+  printf '%s' "${owner:+$owner-}${env_name:+$env_name-}rex" |
+    tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9-' '-' | cut -c1-63
+}
+
+hostname="${REX_TAILSCALE_HOSTNAME:-$(default_hostname)}"
 
 if ! command -v rex >/dev/null; then
   # Other setup can still hold the dpkg lock, which fails the installer outright.
