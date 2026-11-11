@@ -23,21 +23,30 @@ rex() {
   fi
 }
 
-# rex on SSH login: start the server if none is running, otherwise show the
-# Tailscale sign-in link when the server needs one.
+# rex on SSH login: start the server if none is running. Otherwise print the
+# tailnet URL so it can be copied, or the Tailscale sign-in link when the
+# server still needs one.
 # The dotfiles post-start hook also starts the server, but it runs after the
 # rest of the workspace setup, which can take minutes after a power-on. Logging
 # in first starts it the same way, and the hook's later start is a no-op.
 # --autostart=false keeps a status check from launching a server without --tailscale.
 if [[ -n "$SSH_CONNECTION" ]] && (( $+commands[rex] )); then
   if rex_status=$(command rex server status --autostart=false --timeout 2s 2>/dev/null); then
+    rex_url=$(print -r -- "$rex_status" | sed -n 's/^  https: //p')
     rex_login_url=$(print -r -- "$rex_status" | sed -n 's/^  authenticate: //p')
-    [[ -n "$rex_login_url" ]] && echo "rex: Tailscale sign-in needed: $rex_login_url"
+    if [[ -n "$rex_url" ]]; then
+      echo "rex tailnet url:"
+      echo "$rex_url"
+    elif [[ -n "$rex_login_url" ]]; then
+      echo "rex: Tailscale sign-in needed: $rex_login_url"
+    else
+      echo "rex: server running, tailnet https not ready yet (check rex-status)"
+    fi
   elif [[ -x "$HOME/dotfiles/rex-setup.sh" ]]; then
     echo "rex: no server running, starting one"
     "$HOME/dotfiles/rex-setup.sh"
   fi
-  unset rex_status rex_login_url
+  unset rex_status rex_url rex_login_url
 fi
 
 # rex sessions: the Mac app creates sessions without a working directory, so
