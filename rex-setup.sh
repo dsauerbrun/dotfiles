@@ -22,6 +22,14 @@ if ! command -v rex >/dev/null; then
   done
 fi
 
+# Teach the agents to use Rex: a skill for each, plus a session-start hook for
+# Claude Code and Codex (OpenCode and Pi have no command hooks). The agents are
+# named so none is skipped for not being detected yet. ~/.claude and ~/.codex
+# live on EFS and keep theirs, but ~/.agents is an Ona per-instance directory,
+# so the shared skill for Codex, OpenCode and Pi is gone on a new instance.
+# Setup is idempotent and reports what is already current as unchanged.
+rex skill setup --agent claude --agent codex --agent opencode --agent pi
+
 # Ona containers have no systemd, so run a detached user server instead of the
 # packaged rex.service. Start is a no-op when a server is already running, and
 # its flags only apply to a server it launches itself.
