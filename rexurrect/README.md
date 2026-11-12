@@ -13,7 +13,7 @@ server, and installs:
 - `config.toml` in `~/.config/rexurrect/`, and `opencode-plugin.js` as
   `~/.config/opencode/plugins/rexurrect.js`;
 - the auto-restore line in `~/.config/rex/init.lua`;
-- a 15-minute `rexurrect save` crontab entry;
+- a `rexurrect save` crontab entry, every `AUTOSAVE_MINUTES` (1) minutes;
 - a `SessionStart` hook in `~/.claude/settings.json` and `~/.codex/hooks.json`
   (`agent-hooks.py`).
 

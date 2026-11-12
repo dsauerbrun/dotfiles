@@ -1,6 +1,6 @@
 #!/bin/bash
 # Install rexurrect and wire it in: auto-restore when the Rex server starts,
-# autosave every 15 minutes, and resume for Claude Code, Codex and OpenCode.
+# autosave every minute, and resume for Claude Code, Codex and OpenCode.
 # Idempotent; run before the Rex server starts so init.lua is in place.
 # Undo with uninstall.sh.
 set -euo pipefail
@@ -8,6 +8,7 @@ set -euo pipefail
 here="$(dirname "$(readlink -f "$0")")"
 
 VERSION=0.4.0
+AUTOSAVE_MINUTES=1
 declare -A SHA256=(
   [x86_64]=d4023856dc6c67e5cc64f7a2564bf0a8c6fe32ac8b372d53cbf3b34e89528a4e
   [aarch64]=cb4c9ab1ebf6fa4d8b759ffd8bf046eb158f141181c8be71684a049132ad93c5
@@ -50,7 +51,7 @@ install_auto_restore() {
 }
 
 install_autosave() {
-  local line="*/15 * * * * REX_SERVER=$REX_SERVER_URL REXURRECT_STATE_DIR=$STATE_DIR REXURRECT_CONFIG=$CONFIG $BIN save >/dev/null 2>&1 # rexurrect-autosave"
+  local line="*/$AUTOSAVE_MINUTES * * * * REX_SERVER=$REX_SERVER_URL REXURRECT_STATE_DIR=$STATE_DIR REXURRECT_CONFIG=$CONFIG $BIN save >/dev/null 2>&1 # rexurrect-autosave"
   { crontab -l 2>/dev/null | grep -v '# rexurrect-autosave' || true; echo "$line"; } | crontab -
   pgrep -x cron >/dev/null || echo "rexurrect: cron isn't running, so autosave won't run" >&2
 }

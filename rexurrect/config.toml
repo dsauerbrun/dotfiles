@@ -1,3 +1,6 @@
+# Autosave runs every minute (AUTOSAVE_MINUTES in setup.sh), so keep an hour.
+keep = 60
+
 # Agents come back running in their old conversation, not just typed at the prompt.
 auto_resume = ["claude", "codex", "opencode"]
 
