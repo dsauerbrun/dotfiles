@@ -57,3 +57,6 @@ fi
 if [[ "$TERM_PROGRAM" == rex && "$PWD" == "$HOME" && -d /workspaces/obsidian ]]; then
   cd /workspaces/obsidian
 fi
+
+# rexurrect (see rexurrect/README.md): record each Rex block's last command.
+[[ -r ~/.zsh/rexurrect.plugin.zsh ]] && source ~/.zsh/rexurrect.plugin.zsh

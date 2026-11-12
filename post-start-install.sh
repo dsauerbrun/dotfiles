@@ -35,4 +35,5 @@ ln -sfn ../../AGENTS.md "$HOME/.config/opencode/AGENTS.md"
 workspace="${VANTA_WORKSPACE_DIR:-/workspaces/obsidian}"
 python3 "$(dirname "$(readlink -f "$0")")/generate-opencode-mcp.py" "$workspace"
 
+"$(dirname "$(readlink -f "$0")")/rexurrect/setup.sh" || echo "WARNING: rexurrect setup failed" >&2
 "$(dirname "$(readlink -f "$0")")/rex-setup.sh"

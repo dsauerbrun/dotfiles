@@ -1,0 +1,8 @@
+# Agents come back running in their old conversation, not just typed at the prompt.
+auto_resume = ["claude", "codex", "opencode"]
+
+# OpenCode isn't built in; opencode-plugin.js (installed into
+# ~/.config/opencode/plugins/rexurrect.js) reports its session ID.
+[programs.opencode]
+state = "id"
+resume = "opencode --session {state}"
