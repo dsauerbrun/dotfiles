@@ -5,7 +5,7 @@ holds a `SKILL.md` in the common agent-skills format.
 
 | Skill | What it does |
 | --- | --- |
-| `check-in` | A read-only sweep of GitHub PRs, Slack and Google Docs comments: what's waiting on me and what I'm waiting on. |
+| `check-in` | A sweep of GitHub PRs, Slack and Google Docs comments: what's waiting on me and what I'm waiting on. It writes one tab per day into a Claude Doc, and items I tick there never come back. |
 | `pr-review-tabs` | Opens one Rex tab per PR waiting on my review, runs a read-only reviewer agent in each, and sorts the tabs by review effort. |
 
 ## Installation

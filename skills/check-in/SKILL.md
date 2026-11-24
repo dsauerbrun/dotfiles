@@ -1,13 +1,14 @@
 ---
 name: check-in
-description: Holistic "what's outstanding" check across GitHub PRs, Slack, and Google Docs comments — what's waiting on me and what I'm waiting on from others. Use when I ask for a check-in, status sweep, "what's outstanding", "what am I waiting on", or invoke check-in. Read-only; never replies or posts.
+description: Holistic "what's outstanding" check across GitHub PRs, Slack, and Google Docs comments — what's waiting on me and what I'm waiting on from others. Use when I ask for a check-in, status sweep, "what's outstanding", "what am I waiting on", or invoke check-in. Records each day's results in my check-in Claude Doc, where I tick items off; it never replies or posts anywhere else.
 ---
 
 # Check-in
 
-A read-only sweep I run a few times a day. Report two lists per source:
-**Waiting on me** and **Waiting on others**. Never post, reply, react, resolve,
-or merge anything — just report.
+A sweep I run a few times a day. Report two lists per source: **Waiting on
+me** and **Waiting on others**. Never post, reply, react, resolve, or merge
+anything on GitHub, Slack, or Google. The only thing this skill writes is my
+check-in doc (see **Check-in doc**).
 
 This skill is shared by Claude Code, Codex, pi, and OpenCode (canonical copy:
 `~/dotfiles/skills/check-in`). Tool names differ per agent, so each section
@@ -25,7 +26,7 @@ Work-specific values are not in this file. Load them first, in one shell call:
 f=~/.config/agent-skills.env; [ -f "$f" ] && set -a && . "$f" && set +a
 echo "GITHUB_LOGIN=$(gh api user --jq .login)"
 echo "MY_NAME=$(git config user.name)"
-for v in SLACK_USER_ID WORK_GITHUB_REPO IGNORED_REVIEW_TEAMS GLEAN_MCP_URL; do echo "$v=$(printenv "$v")"; done
+for v in SLACK_USER_ID WORK_GITHUB_REPO IGNORED_REVIEW_TEAMS GLEAN_MCP_URL CHECKIN_DOC_URL; do echo "$v=$(printenv "$v")"; done
 ```
 
 Substitute the printed values wherever this file writes `$NAME` below, because
@@ -41,10 +42,12 @@ don't need it.
 - `$IGNORED_REVIEW_TEAMS`: a comma-separated list of team slugs to ignore as
   requested reviewers.
 - `$GLEAN_MCP_URL`: the Glean MCP endpoint.
+- `$CHECKIN_DOC_URL`: the Claude Doc this skill keeps up to date.
 - Google: my work Google account. The Gmail and Drive connectors already use
   it.
 
-Run the three sources in parallel where the agent allows it.
+Before sweeping, run step 1 of **Check-in doc** to load what I've already
+handled. Then run the three sources in parallel where the agent allows it.
 
 ## Backends by capability
 
@@ -165,8 +168,18 @@ Use these three sources together; none is complete on its own.
 
 ## Output
 
-Keep it scannable. Use this structure, and put each URL in plain text at the
-end of its line (no Markdown links):
+Every item is one checklist line:
+
+```
+- [ ] **<short title>**: <who, when, one-line gist> <url>
+```
+
+Each item's URL is its identity. Use the most specific URL available (a review
+thread, a Slack permalink, a Doc comment `disco=` link, a PR) and put it
+last on the line as plain text. Items without a URL (a commitment, say) use
+`key:<short-slug>` in its place.
+
+Group the items under these headings:
 
 ```
 ## Waiting on me
@@ -182,13 +195,63 @@ end of its line (no Markdown links):
 
 ## My open commitments  (only if any)
 
-## Sources not checked  (only if any)
+## Sources not checked  (only if any; plain bullets, no checkboxes)
 ```
 
 Put the most urgent items first in each section: human questions, then
 anything with a date attached, then items older than 3 days. Leave out empty
-subsections, or write "nothing outstanding". End with a one-line summary
-count, such as "6 items need me, 4 waiting on others."
+subsections. Open the tab with a one-line summary, such as "6 items need me,
+4 waiting on others," followed by the run time.
+
+Write this into the check-in doc when the agent has the Claude Docs tools.
+Without them (Codex, pi, or OpenCode, for now), print it in chat and say that
+the doc wasn't updated.
+
+## Check-in doc
+
+`$CHECKIN_DOC_URL` is a Claude Doc. I tick a box when an item is done or
+when I don't want to hear about it again; both mean "stop reminding me".
+Load the docs guide (`guide` with `topic.index`, `topic.tabs`, and
+`topic.editing`) before the first docs call of a run.
+
+Layout:
+
+- **Day tabs**, one per calendar day, newest at the top. Name each one
+  `YYYY-MM-DD ddd`, for example `2026-11-24 Tue`. Give it the tab order
+  `d` + (99999999 − YYYYMMDD); for 2026-11-24 that is `d79738875`. Later days
+  sort first.
+- **Handled**, one tab with the order `z0`, always last. It holds a lead line
+  and then one bullet per handled item:
+  `- <date handled> · <short title> · <url or key>`. To bring an item back,
+  I delete its line.
+
+Each run:
+
+1. **Harvest.** Read the doc to list its tabs. Read today's day tab if it
+   exists, plus the newest earlier day tab, in full (`{"kind":"view"}`). Every
+   ticked list item (`checked`) is handled. Append each one to **Handled** that
+   isn't already there, in a single insert at the end of the tab. Then read
+   Handled and collect its URLs and keys as the suppression set.
+2. **Sweep.** Run the sources above. Drop every item whose URL or key is in the
+   suppression set. The one exception is new human activity (a new comment,
+   reply, or review) that is newer than the item's Handled date. Bring that
+   back, with "(new activity since you marked it handled)" added to its gist.
+3. **Write today's tab.**
+   - No tab for today yet: create it with a single `batch`, following the
+     topic.tabs ex.1 pattern: a file whose `birthName` is `<YYYY-MM-DD>.ldoc`,
+     a prose node holding the markdown, and a project patch that sets its
+     name and order. If there is no Handled tab yet, create it in the same
+     batch, with the order `z0`.
+   - Today's tab already exists, because this is a later run the same day:
+     replace its contents with the new markdown. Do this in one `replace`
+     that targets every top-level block id from the step 1 read and carries
+     that read's `ifRev`. If the refusal is `guard_mismatch`, I ticked
+     something in the meantime: go back to step 1 for this tab and try again.
+     Never delete the tab and recreate it.
+   - Leave earlier day tabs unchanged. They're the history.
+4. **Report in chat.** Give a short summary: the counts, the three most urgent
+   items, how many items were moved to Handled, and the doc link.
+   `open` the doc with the Artifact tool when it's available.
 
 ## Setup hints for missing backends
 
