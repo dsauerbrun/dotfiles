@@ -93,11 +93,28 @@ Classify:
 - Personal repos (outside `$WORK_ORG`): mention only if there is activity in
   the lookback window.
 
-Also list **reviews I owe**, in one short section. List the PRs that request me
-by name in full:
-`gh api 'search/issues?q=is:pr+is:open+user-review-requested:$GITHUB_LOGIN+-is:draft&per_page=30' --jq '.items[] | "\(.number)\t\(.updated_at[0:10])\t\(.user.login)\t\(.title)\t\(.html_url)"'`.
-Report team-only requests (`gh search prs --review-requested=@me --state open`
-minus the above) as a count only, since bad rebases often add whole teams.
+Also list **reviews I owe**, in one short section:
+
+```bash
+SKILL_DIR=$HOME/dotfiles/skills/check-in
+me=$(gh api user --jq .login)
+gh api graphql -F query=@$SKILL_DIR/reviews-i-owe.graphql -f me="$me" \
+  -f q="is:pr is:open -is:draft review-requested:$me" \
+  | jq -r --arg me "$me" '.data.search.nodes[]
+    | {n: .number, t: .title, url, a: .author.login,
+       named: ([.reviewRequests.nodes[].requestedReviewer.login] | index($me) != null),
+       mine: .reviews.nodes[0].state, mineAt: .reviews.nodes[0].submittedAt,
+       reReq: ([.timelineItems.nodes[] | select(.requestedReviewer.login == $me) | .createdAt] | last)}
+    | select(.mine != "APPROVED" or (.named and .reReq > .mineAt))
+    | "\(.n)\t\(if .named then "named" else "team" end)\t\(.mine // "-")\t\(.a)\t\(.t)\t\(.url)"'
+```
+
+- Skip any PR I've already approved, unless I was requested again by name
+  after that approval. The jq filter does this. Label a re-request as
+  "re-requested after your approval".
+- List PRs that request me by name in full.
+- Report team-only requests as a count only, since bad rebases often add
+  whole teams.
 
 ## 2. Slack
 

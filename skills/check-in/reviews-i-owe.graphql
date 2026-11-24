@@ -1,0 +1,15 @@
+query($q: String!, $me: String!) {
+  search(query: $q, type: ISSUE, first: 50) {
+    nodes {
+      ... on PullRequest {
+        number title url updatedAt
+        author { login }
+        reviewRequests(first: 30) { nodes { requestedReviewer { ... on User { login } } } }
+        reviews(author: $me, last: 1) { nodes { state submittedAt } }
+        timelineItems(itemTypes: [REVIEW_REQUESTED_EVENT], last: 30) {
+          nodes { ... on ReviewRequestedEvent { createdAt requestedReviewer { ... on User { login } } } }
+        }
+      }
+    }
+  }
+}
