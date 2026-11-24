@@ -58,7 +58,8 @@ link_to_efs() {
       merge_into_efs "$home_path" "$efs_path"
       local backups="$EFS_MOUNT_POINT/.link-repair-backups"
       mkdir -p "$backups"
-      mv "$home_path" "$backups/${segment//\//_}.$(date -u +%Y%m%dT%H%M%SZ).$attempt"
+      local name=${segment#.}
+      mv "$home_path" "$backups/${name//\//_}.$(date -u +%Y%m%dT%H%M%SZ).$attempt"
     elif [ -f "$home_path" ] && [ ! -L "$home_path" ] && [ ! -e "$efs_path" ]; then
       mv "$home_path" "$efs_path"
     fi
