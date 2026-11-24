@@ -6,6 +6,24 @@ set -x
 # alone and merges instead of deleting (see link_to_efs).
 
 
+# Copies files from a stray home directory into EFS. Files missing from EFS are
+# copied. A file on both sides keeps the EFS copy, except a .jsonl transcript:
+# an agent resumed while the link was missing appended to its own copy, so the
+# larger (longer) transcript wins.
+merge_into_efs() {
+  local src=$1 dst=$2 rel
+  (cd "$src" && find . -type f -print0) | while IFS= read -r -d '' rel; do
+    rel=${rel#./}
+    if [ ! -e "$dst/$rel" ]; then
+      mkdir -p "$(dirname "$dst/$rel")"
+      cp -a "$src/$rel" "$dst/$rel"
+    elif [[ $rel == *.jsonl ]] && [ -f "$dst/$rel" ] &&
+      [ "$(stat -c %s "$src/$rel")" -gt "$(stat -c %s "$dst/$rel")" ]; then
+      cp -a "$src/$rel" "$dst/$rel"
+    fi
+  done
+}
+
 # Symlinks $HOME/<segment> to the same path on the EFS drive.
 #
 # The home directory survives a restart, so the link is usually already in
@@ -15,8 +33,9 @@ set -x
 # the ln, which hides every session on EFS.
 #
 # When the home path is a plain directory, its contents are merged into EFS
-# (never overwriting EFS files) before it is replaced, so nothing an agent
-# wrote there is lost.
+# before it is replaced (see merge_into_efs), and the directory itself is moved
+# to $EFS_MOUNT_POINT/.link-repair-backups rather than deleted, so nothing an
+# agent wrote there is lost.
 link_to_efs() {
   local segment=$1
   local home_path="$HOME/$segment" efs_path="$EFS_MOUNT_POINT/$segment"
@@ -36,7 +55,10 @@ link_to_efs() {
       # A previous lost race leaves the link nested inside the directory.
       local nested="$home_path/$(basename "$segment")"
       [ "$(readlink "$nested")" = "$efs_path" ] && rm -f "$nested"
-      cp -a --update=none "$home_path/." "$efs_path/"
+      merge_into_efs "$home_path" "$efs_path"
+      local backups="$EFS_MOUNT_POINT/.link-repair-backups"
+      mkdir -p "$backups"
+      mv "$home_path" "$backups/${segment//\//_}.$(date -u +%Y%m%dT%H%M%SZ).$attempt"
     elif [ -f "$home_path" ] && [ ! -L "$home_path" ] && [ ! -e "$efs_path" ]; then
       mv "$home_path" "$efs_path"
     fi
