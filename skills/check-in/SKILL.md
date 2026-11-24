@@ -188,13 +188,18 @@ Use these three sources together; none is complete on its own.
 Every item is one checklist line:
 
 ```
-- [ ] **<short title>**: <who, when, one-line gist> <url>
+- [ ] **[<short title>](<url>)**: <who, when, one-line gist>
 ```
 
-Each item's URL is its identity. Use the most specific URL available (a review
-thread, a Slack permalink, a Doc comment `disco=` link, a PR) and put it
-last on the line as plain text. Items without a URL (a commitment, say) use
-`key:<short-slug>` in its place.
+The title is a Markdown link, because bare URLs aren't clickable in the doc.
+That link's URL is the item's identity, so use the most specific one there is:
+a review thread, a Slack permalink, a Doc comment `disco=` link, or a PR. Other
+URLs in the gist can be links too, but only the title link is the identity.
+An item without a URL (a commitment, say) uses a plain bold title, followed by
+`(key: <short-slug>)` at the end of the line.
+
+In chat, without the doc, show URLs as plain text at the end of the line
+instead.
 
 Group the items under these headings:
 
@@ -239,16 +244,19 @@ Layout:
   sort first.
 - **Handled**, one tab with the order `z0`, always last. It holds a lead line
   and then one bullet per handled item:
-  `- <date handled> · <short title> · <url or key>`. To bring an item back,
-  I delete its line.
+  `- <date handled> · [<short title>](<url>)`, or
+  `- <date handled> · <short title> (key: <slug>)` for an item without a URL.
+  To bring an item back, I delete its line.
 
 Each run:
 
 1. **Harvest.** Read the doc to list its tabs. Read today's day tab if it
    exists, plus the newest earlier day tab, in full (`{"kind":"view"}`). Every
-   ticked list item (`checked`) is handled. Append each one to **Handled** that
-   isn't already there, in a single insert at the end of the tab. Then read
-   Handled and collect its URLs and keys as the suppression set.
+   ticked list item (`<listItem … checked='true'>`) is handled. Its identity is
+   the `href` of the first `<link>` in its paragraph, or its `(key: …)`.
+   Append each one to **Handled** that isn't already there, in a single insert
+   at the end of the tab's list. Then read Handled and collect every link
+   `href` and key as the suppression set.
 2. **Sweep.** Run the sources above. Drop every item whose URL or key is in the
    suppression set. The one exception is new human activity (a new comment,
    reply, or review) that is newer than the item's Handled date. Bring that
