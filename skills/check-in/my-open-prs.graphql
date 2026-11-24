@@ -1,0 +1,14 @@
+query {
+  search(query: "is:pr is:open author:@me archived:false", type: ISSUE, first: 50) {
+    nodes {
+      ... on PullRequest {
+        number title url isDraft reviewDecision updatedAt
+        repository { nameWithOwner }
+        reviewRequests(first: 10) { nodes { requestedReviewer { ... on User { login } ... on Team { slug } } } }
+        latestReviews(first: 10) { nodes { author { login } state submittedAt } }
+        comments(last: 5) { nodes { author { login } createdAt body } }
+        reviewThreads(first: 50) { nodes { isResolved isOutdated path comments(last: 1) { nodes { author { login } createdAt body url } } } }
+      }
+    }
+  }
+}

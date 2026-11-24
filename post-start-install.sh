@@ -61,6 +61,17 @@ done
 mkdir -p "$HOME/.config/opencode"
 ln -sfn ../../AGENTS.md "$HOME/.config/opencode/AGENTS.md"
 
+# Personal agent-neutral skills live once in dotfiles/skills and are linked into each
+# agent's user skills directory. OpenCode needs no link: it already reads ~/.claude/skills.
+mkdir -p "$HOME/.claude/skills" "$HOME/.codex/skills" "$HOME/.pi/agent/skills"
+for skill in "$(dirname "$(readlink -f "$0")")"/skills/*/; do
+  [ -d "$skill" ] || continue
+  name="$(basename "$skill")"
+  for dir in "$HOME/.claude/skills" "$HOME/.codex/skills" "$HOME/.pi/agent/skills"; do
+    ln -sfnT "${skill%/}" "$dir/$name"
+  done
+done
+
 # Keep .mcp.json as the source of truth for project-local OpenCode MCP servers.
 workspace="${VANTA_WORKSPACE_DIR:-/workspaces/obsidian}"
 python3 "$(dirname "$(readlink -f "$0")")/generate-opencode-mcp.py" "$workspace"
